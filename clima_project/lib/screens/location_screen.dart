@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:clima_project/utilities/constants.dart';
 import 'package:clima_project/services/weather.dart';
-import 'city_screen.dart';
+import 'package:clima_project/screens/city_screen.dart';
 
 class LocationScreen extends StatefulWidget {
   const LocationScreen({super.key, this.locationWeather});
@@ -14,6 +14,7 @@ class LocationScreen extends StatefulWidget {
 
 class _LocationScreenState extends State<LocationScreen> {
   final WeatherModel weather = WeatherModel();
+
   int temperature = 0;
   String weatherIcon = '';
   String cityName = '';
@@ -35,10 +36,7 @@ class _LocationScreenState extends State<LocationScreen> {
         return;
       }
 
-      // WeatherAPI:
-      // location.name
-      // current.temp_c
-      // current.condition.text
+      
       final temp = (weatherData['current']['temp_c'] as num).toDouble();
       temperature = temp.toInt();
 
@@ -73,8 +71,25 @@ class _LocationScreenState extends State<LocationScreen> {
                 children: <Widget>[
                   TextButton(
                     onPressed: () async {
-                      var weatherData = await weather.getLocationWeather();
-                      updateUI(weatherData);
+                      print('[UI] Near-me button pressed');
+                      try {
+                        final weatherData = await weather.getLocationWeather();
+                        print(
+                          '[UI] Near-me: got weather for '
+                          '${weatherData['location']['name']}',
+                        );
+                        updateUI(weatherData);
+                      } catch (e, st) {
+                        print('[UI] Near-me ERROR: $e');
+                        print(st);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Could not get location weather'),
+                            ),
+                          );
+                        }
+                      }
                     },
                     child: const Icon(
                       Icons.near_me,
@@ -83,14 +98,14 @@ class _LocationScreenState extends State<LocationScreen> {
                   ),
                   TextButton(
                     onPressed: () async {
-                      var typedName = await Navigator.push(
+                      final typedName = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) =>  CityScreen(),
                         ),
                       );
                       if (typedName != null) {
-                        var weatherData =
+                        final weatherData =
                             await weather.getCityWeather(typedName);
                         updateUI(weatherData);
                       }

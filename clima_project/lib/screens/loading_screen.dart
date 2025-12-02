@@ -16,33 +16,34 @@ class _LoadingScreenState extends State<LoadingScreen> {
     getLocationData();
   }
 
-  Future<void> getLocationData() async {
-    print('getLocationData: start');  // 👈 look for this in console
-    try {
-      var weatherData = await WeatherModel().getLocationWeather();
-      print('getLocationData: got weather data'); // 👈 and this
+Future<void> getLocationData() async {
+  print('getLocationData: start');
+  try {
+    // 👇 STATIC CITY HERE – change "Athens" to whatever you like
+    var weatherData = await WeatherModel().getCityWeather('Athens');
+    print('getLocationData: got weather data');
 
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              LocationScreen(locationWeather: weatherData),
-        ),
-      );
-    } catch (e, st) {
-      print('getLocationData: ERROR $e');
-      print(st);
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              LocationScreen(locationWeather: null),
-        ),
-      );
-    }
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            LocationScreen(locationWeather: weatherData),
+      ),
+    );
+  } catch (e, st) {
+    print('getLocationData: ERROR $e');
+    print(st);
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            LocationScreen(locationWeather: null),
+      ),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
