@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'location_screen.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:clima_project/services/weather.dart';
+import 'package:clima_project/screens/location_screen.dart';
 
 class LoadingScreen extends StatefulWidget {
+  const LoadingScreen({super.key});
+
   @override
-  State<StatefulWidget> createState() {
-    return _LoadingScreenState();
-  }
+  State<LoadingScreen> createState() => _LoadingScreenState();
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
@@ -17,24 +16,39 @@ class _LoadingScreenState extends State<LoadingScreen> {
     getLocationData();
   }
 
-  void getLocationData() async {
-    var weatherData = await WeatherModel().getLocationWeather();
+  Future<void> getLocationData() async {
+    print('getLocationData: start');  // 👈 look for this in console
+    try {
+      var weatherData = await WeatherModel().getLocationWeather();
+      print('getLocationData: got weather data'); // 👈 and this
 
-    Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return LocationScreen(
-        locationWeather: weatherData,
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              LocationScreen(locationWeather: weatherData),
+        ),
       );
-    }));
+    } catch (e, st) {
+      print('getLocationData: ERROR $e');
+      print(st);
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              LocationScreen(locationWeather: null),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Center(
-        child: SpinKitDoubleBounce(
-          color: Colors.white,
-          size: 100.0,
-        ),
+        child: CircularProgressIndicator(),
       ),
     );
   }

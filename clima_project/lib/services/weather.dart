@@ -1,59 +1,68 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:clima_project/services/location.dart';
-import 'package:clima_project/services/networking.dart';
 import 'package:clima_project/secrets.dart';
 
+// from secrets.dart
 const apiKey = openWeatherApiKey;
-const openWeatherMapURL = url;
+
+// WeatherAPI base URL
+const weatherApiBaseUrl = 'https://api.weatherapi.com/v1';
 
 class WeatherModel {
-  Future<dynamic> getCityWeather(String cityName) async {
-    NetworkHelper networkHelper = NetworkHelper(
-        '$openWeatherMapURL?q=$cityName&appid=$apiKey&units=metric');
+  Future<Map<String, dynamic>> getCityWeather(String cityName) async {
+    final uri = Uri.parse(
+      '$weatherApiBaseUrl/current.json?key=$apiKey&q=$cityName&aqi=no',
+    );
 
-    var weatherData = await networkHelper.getData();
-    return weatherData;
+    final response = await http.get(uri);
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load weather data: ${response.statusCode}');
+    }
+
+    return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  Future<dynamic> getLocationWeather() async {
-    Location location = Location();
+  Future<Map<String, dynamic>> getLocationWeather() async {
+    final location = Location();
     await location.getCurrentLocation();
 
-    NetworkHelper networkHelper = NetworkHelper(
-        '$openWeatherMapURL?lat=${location.latitude}&lon=${location.longitude}&appid=$apiKey&units=metric');
+    if (location.latitude == null || location.longitude == null) {
+      throw Exception('Location not available');
+    }
 
-    var weatherData = await networkHelper.getData();
-    return weatherData;
+    final query = '${location.latitude},${location.longitude}';
+    final uri = Uri.parse(
+      '$weatherApiBaseUrl/current.json?key=$apiKey&q=$query&aqi=no',
+    );
+
+    final response = await http.get(uri);
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load weather data: ${response.statusCode}');
+    }
+
+    return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  String getWeatherIcon(int condition) {
-    if (condition < 300) {
-      return '🌩';
-    } else if (condition < 400) {
-      return '🌧';
-    } else if (condition < 600) {
-      return '☔️';
-    } else if (condition < 700) {
-      return '☃️';
-    } else if (condition < 800) {
-      return '🌫';
-    } else if (condition == 800) {
-      return '☀️';
-    } else if (condition <= 804) {
-      return '☁️';
-    } else {
-      return '🤷‍';
-    }
+  String getWeatherIcon(String conditionText) {
+    final text = conditionText.toLowerCase();
+
+    if (text.contains('thunder')) return '⛈';
+    if (text.contains('rain') || text.contains('drizzle')) return '🌧';
+    if (text.contains('snow') || text.contains('sleet')) return '❄️';
+    if (text.contains('fog') || text.contains('mist')) return '🌫';
+    if (text.contains('cloud')) return '☁️';
+    if (text.contains('sunny') || text.contains('clear')) return '☀️';
+
+    return '🤷‍♂️';
   }
 
-  String getMessage(int temp) {
-    if (temp > 25) {
-      return 'It\'s 🍦 time';
-    } else if (temp > 20) {
-      return 'Time for shorts and 👕';
-    } else if (temp < 10) {
-      return 'You\'ll need 🧣 and 🧤';
-    } else {
-      return 'Bring a 🧥 just in case';
-    }
+  String getMessage(double tempC) {
+    if (tempC > 25) return 'It’s 🍦 time';
+    if (tempC > 20) return 'Time for shorts and 👕';
+    if (tempC < 10) return 'You’ll need 🧣 and 🧤';
+    return 'Bring a 🧥 just in case';
   }
 }
