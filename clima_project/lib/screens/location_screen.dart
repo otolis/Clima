@@ -34,14 +34,12 @@ class _LocationScreenState extends State<LocationScreen> {
                     iconSize: 50.0,
                     icon: const Icon(Icons.near_me),
                     onPressed: () {
-                      // TODO: handle "near me" press
                     },
                   ),
                   IconButton(
                     iconSize: 50.0,
                     icon: const Icon(Icons.location_city),
                     onPressed: () {
-                      // TODO: handle "city" press
                     },
                   ),
                 ],
